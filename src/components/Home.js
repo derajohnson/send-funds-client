@@ -67,7 +67,7 @@ function Home () {
             </div>
             <div className='content'>
               <div>
-              <p className='description'>Send <i class="fa-brands fa-ethereum"></i> to your friends and family.</p>
+              <p className='description'>Send <i className="fa-brands fa-ethereum"></i> to your friends and family.</p>
             <button className='connect-btn' onClick={() => connectWallet()}>
               Connect Wallet
             </button>
@@ -80,7 +80,7 @@ function Home () {
           <p className='wallet-address'>{truncate(currentAccount)}</p>
           </div>
           <div className='content connected-wallet'>
-          <p className='description'>Send <i class="fa-brands fa-ethereum"></i> to your friends and family.</p>
+          <p className='description'>Send <i className="fa-brands fa-ethereum"></i> to your friends and family.</p>
   
   </div>
 

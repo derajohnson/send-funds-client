@@ -1,19 +1,20 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ethers} from 'ethers'
 import './Form.css';
 import abi from '../utils/SendFunds.json';
 import { parseEther } from 'ethers/lib/utils';
+import Transaction from './Transactions';
 
 // 0x61696df0f7Af8A8570D9da0D010f0098F94687dc
+
 const Form = () => {
     const [walletAddress, setWalletAddress] = useState('')
-    const [amount, setAmount] = useState(null)
+    const [amount, setAmount] = useState('')
+    const [allTxns, setAllTxns] = useState([])
+    const [isTxn, setIsTxn] = useState(false)
 
     const contractAddress = '0x901daf41a2292c1002e4F9dEe8f8Ab05964ccd50'
     const contractABI = abi.abi
-
-    let amountToString = String(amount)
-
     const sendFunds = async () => {
         try {
             const {ethereum} = window
@@ -21,12 +22,8 @@ const Form = () => {
                 const provider = new ethers.providers.Web3Provider(ethereum);
                 const signer = provider.getSigner();
                 const sendFundsContract = new ethers.Contract(contractAddress, contractABI, signer)
-                const sendFundsTxn = await sendFundsContract.sendFunds(walletAddress, ethers.utils.parseEther(amountToString), { gasLimit: 300000, value: parseEther(amountToString) })
+                const sendFundsTxn = await sendFundsContract.sendFunds(walletAddress, ethers.utils.parseEther(amount), { gasLimit: 300000, value: parseEther(amount) })
                 await sendFundsTxn.wait()
-
-                let getAllTxn = await sendFundsContract.getAllTxn()
-                console.log(getAllTxn)
-               
             }else{
                 console.log('ethereum object does not exist!')
             }
@@ -35,14 +32,43 @@ const Form = () => {
         }
     }
 
+    const getAllTransactions = async () => {
+      try {
+        const {ethereum} = window
+        if(ethereum) {
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            const signer = provider.getSigner();
+            const sendFundsContract = new ethers.Contract(contractAddress, contractABI, signer)
+            let getAllTxn = await sendFundsContract.getAllTxn()
+            setIsTxn(true)
+
+    let txns = [];
+    getAllTxn.forEach(txn => {
+      txns.push({
+          address: txn.reciever,
+          amount: txn.amount,
+          timestamp: new Date(txn.timestamp * 1000)
+      })
+  })
+    setAllTxns(txns)
+           
+        }else{
+            console.log('ethereum object does not exist!')
+        }
+    } catch (error) {
+        console.log(error)
+    }
+    } 
+
     const handleSubmit = (e) => {
         e.preventDefault();
         sendFunds();
         
     }
-
-    console.log('amount', amount)
-    console.log('wallet address', walletAddress)
+useEffect(() => {
+getAllTransactions()
+}, [])
+    console.log(allTxns)
 
   return (
     <div className="form">
@@ -67,7 +93,7 @@ const Form = () => {
             required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            step='1'
+            step='any'
             min='0'
           />
         </p>
@@ -75,6 +101,14 @@ const Form = () => {
           Send
         </button>
       </form>
+
+      <div>
+        {isTxn === false ? <div>
+          </div>:<div>
+            <Transaction allTxns={allTxns}/>
+            </div>
+          }
+      </div>
     </div>
   );
 };
